@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+Frontend/node_modules/
+Backend/node_modules/
+
+# Environment files
+.env
+.env.local
+Frontend/.env
+Backend/.env
+
+# Build directories
+dist/
+build/
+Frontend/dist/
+Frontend/build/
+
+# Temporary files and upload directories
+Backend/tmp/
+Backend/uploads/
+Backend/uploads/ordenes/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# System files
+.DS_Store
+desktop.ini
+Thumbs.db
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# IDE specific files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
