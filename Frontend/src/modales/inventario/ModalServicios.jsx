@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, X, DollarSign } from 'lucide-react';
+import { UsoToast } from '../../contexto/UsoToast';
 
 const ModalServicios = ({ isOpen, onClose, onSubmit, servicioEditar }) => {
+  const { error } = UsoToast();
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -32,8 +34,18 @@ const ModalServicios = ({ isOpen, onClose, onSubmit, servicioEditar }) => {
     }));
   };
 
+  // Validar precio no vacío y mayor a 0
+  const validateServicio = () => {
+    if (!formData.precio || Number(formData.precio) <= 0) {
+      error('El precio debe ser mayor a 0');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateServicio()) return;
     try {
       const servicioData = {
         nombre: formData.nombre,
@@ -45,7 +57,7 @@ const ModalServicios = ({ isOpen, onClose, onSubmit, servicioEditar }) => {
       }
       if (onClose) onClose();
     } catch (error) {
-      // Aquí irá un mensaje de error para el usuario
+      error(error.message || 'Error al crear el servicio');
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DollarSign, Building2, FileText, ChevronDown } from "lucide-react";
 import axios from "axios";
+import { UsoToast } from '../../contexto/UsoToast';
 
 const ModalGasto = ({ isOpen, onClose, onSubmit }) => {
   const today = new Date();
@@ -61,12 +62,23 @@ const ModalGasto = ({ isOpen, onClose, onSubmit }) => {
     };
   }, []);
 
+  const { error } = UsoToast();
+
   const handleClose = () => {
     if (onClose) onClose();
   };
 
+  const validateGasto = () => {
+    if (!formData.monto || Number(formData.monto) <= 0) {
+      error('El monto debe ser mayor a 0');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateGasto()) return;
     try {
       const gastoData = {
         fecha: formData.fecha,

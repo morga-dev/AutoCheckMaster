@@ -192,18 +192,37 @@ const OrdenPDF = ({ formData }) => (
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Información del Vehículo</Text>
           </View>
-          <View style={styles.grid}>
-            {[
-              { label: 'No. Serie:', value: formData.noSerie },
-              { label: 'Placa:', value: formData.placa },
-              { label: 'Modelo:', value: formData.modelo },
-              { label: 'Marca:', value: formData.marca }
-            ].map((item, index) => (
-              <View key={index} style={styles.field}>
-                <Text style={styles.label}>{item.label}</Text>
-                <Text style={styles.value}>{String(item.value || '_________________')}</Text>
+          <View style={{ flexDirection: 'row' }}>
+            {/* Columna 1: Modelo, Marca, Año */}
+            <View style={{ flex: 1 }}>
+              <View style={styles.field}>
+                <Text style={styles.label}>Modelo:</Text>
+                <Text style={styles.value}>{String(formData.modelo || '_________________')}</Text>
               </View>
-            ))}
+              <View style={styles.field}>
+                <Text style={styles.label}>Marca:</Text>
+                <Text style={styles.value}>{String(formData.marca || '_________________')}</Text>
+              </View>
+              <View style={styles.field}>
+                <Text style={styles.label}>Año:</Text>
+                <Text style={styles.value}>{String(formData.año || '_________________')}</Text>
+              </View>
+            </View>
+            {/* Columna 2: No. Serie, Placa, Kilometraje */}
+            <View style={{ flex: 1 }}>
+              <View style={styles.field}>
+                <Text style={styles.label}>No. Serie:</Text>
+                <Text style={styles.value}>{String(formData.noSerie || '_________________')}</Text>
+              </View>
+              <View style={styles.field}>
+                <Text style={styles.label}>Placa:</Text>
+                <Text style={styles.value}>{String(formData.placa || '_________________')}</Text>
+              </View>
+              <View style={styles.field}>
+                <Text style={styles.label}>Kilometraje:</Text>
+                <Text style={styles.value}>{String(formData.kilometraje || '_________________')}</Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>

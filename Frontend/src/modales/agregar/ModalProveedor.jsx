@@ -115,6 +115,7 @@ const ModalProveedor = ({ isOpen, onClose, onSubmit }) => {
                     className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 
                              focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                     required
+                    maxLength="13"
                   />
                 </div>
                 <div>

@@ -21,26 +21,23 @@ const ModalRefacciones = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const validateRefaccion = () => {
-    // Validar precio positivo
-    if (formData.precio <= 0) {
+    // Validar precio no vacío y mayor a 0
+    if (!formData.precio || Number(formData.precio) <= 0) {
       error('El precio debe ser mayor a 0');
       return false;
     }
-
-    // Validar stock mínimo
-    if (formData.stock < 1) {
-      error('El stock no puede ser negativo');
+    // Validar cantidad no vacía y mayor a 0
+    if (!formData.cantidad || Number(formData.cantidad) < 1) {
+      error('El stock debe ser al menos 1');
       return false;
     }
-
     // Validar nombre no vacío
     if (!formData.nombre?.trim()) {
       error('El nombre de la refacción es obligatorio');
       return false;
     }
-
     return true;
-  }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();

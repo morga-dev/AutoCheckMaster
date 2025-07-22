@@ -205,7 +205,11 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
 
   const handleChange = e => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let newValue = value;
+    if (name === 'placa' || name === 'numero_serie') {
+      newValue = value.toUpperCase();
+    }
+    setFormData(prev => ({ ...prev, [name]: newValue }));
   };
 
   const handleTipoClienteChange = esRegistrado => {
@@ -243,19 +247,32 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
       error('La descripción debe tener al menos 10 caracteres');
       return false;
     }
-
     // Validar que haya al menos un insumo
     if (!formData.insumosUtilizados.trim()) {
       error('Debe especificar los insumos utilizados');
       return false;
     }
-
+    // Validar número de serie (17 caracteres exactos)
+    if (!formData.numero_serie || formData.numero_serie.length !== 17) {
+      error('El número de serie debe tener exactamente 17 caracteres');
+      return false;
+    }
+    // Validar placa (7 caracteres exactos)
+    if (!formData.placa || formData.placa.length !== 7) {
+      error('La placa debe tener exactamente 7 caracteres');
+      return false;
+    }
     // Validar fecha inicio
     if (!formData.fechaInicio) {
       error('La fecha de inicio es obligatoria');
       return false;
     }
-
+    const now = new Date();
+    const fechaInicio = new Date(formData.fechaInicio);
+    if (fechaInicio < now) {
+      error('La fecha de inicio no puede ser anterior a la actual');
+      return false;
+    }
     // Validaciones para cliente no registrado
     if (!esClienteRegistrado) {
       if (!formData.telefono?.trim()) {
@@ -268,9 +285,8 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
         return false;
       }
     }
-
     return true;
-  }
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -484,7 +500,7 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Número de Serie *
+                        Número de Serie (17 caracteres)*
                       </label>
                       <input
                         type="text"
@@ -493,11 +509,13 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
                         onChange={handleChange}
                         className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200"
                         required
+                        minLength={17}
+                        maxLength={17}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Placa *
+                        Placa (7 caracteres)*
                       </label>
                       <input
                         type="text"
@@ -506,6 +524,8 @@ const ModalOrden = ({ isOpen, onClose, onSubmit }) => {
                         onChange={handleChange}
                         className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200"
                         required
+                        minLength={7}
+                        maxLength={7}
                       />
                     </div>
                     <div>

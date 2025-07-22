@@ -35,9 +35,13 @@ const ModalCliente = ({ isOpen, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'placa' || name === 'numero_serie') {
+      newValue = value.toUpperCase();
+    }
     setFormData(prevState => ({
       ...prevState,
-      [name]: value
+      [name]: newValue
     }));
   };
 
@@ -45,34 +49,26 @@ const ModalCliente = ({ isOpen, onClose, onSubmit }) => {
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      error('Formato de email inválido');
+      error('El formato del correo electrónico no es válido');
       return false;
     }
-
-    // Validar formato de teléfonos
-    const phoneRegex = /^\d{10}$/;
-    if (formData.celular && !phoneRegex.test(formData.celular)) {
-      error('El celular debe tener 10 dígitos');
-      return false;
-    }
-
-    if (formData.telefono_casa && !phoneRegex.test(formData.telefono_casa)) {
-      error('El teléfono debe tener 10 dígitos');
-      return false;
-    }
-
-    // Validar placa (7 caracteres)
-    if (formData.placa && formData.placa.length !== 7) {
-      error('La placa debe tener 7 caracteres');
-      return false;
-    }
-
-    // Validar número de serie (17 caracteres)
+    // Validar número de serie (17 caracteres exactos)
     if (formData.numero_serie && formData.numero_serie.length !== 17) {
-      error('El número de serie debe tener 17 caracteres');
+      error('El número de serie debe tener exactamente 17 caracteres');
+      return false;
+    }
+    // Validar código postal (5 caracteres exactos)
+    if (formData.codigo_postal && formData.codigo_postal.length !== 5) {
+      error('El código postal debe tener exactamente 5 caracteres');
       return false;
     }
 
+    // Validar placa (7 caracteres exactos)
+    if (formData.placa && formData.placa.length !== 7) {
+      error('La placa debe tener exactamente 7 caracteres');
+      return false;
+    }
+    
     return true;
   };
 

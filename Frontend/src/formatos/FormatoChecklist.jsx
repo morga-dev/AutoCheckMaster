@@ -3,6 +3,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { FileDown, User, Car, Clipboard, PenTool, Camera, Loader2 } from "lucide-react";
 import ChecklistPDF from "./PDFs/ChecklistPDF";
 import EvidenciasChecklistPDF from "./PDFs/EvidenciasChecklistPDF";
+import { UsoToast } from '../contexto/UsoToast';
 
 const ELEMENTOS = [
   "Carrocería",
@@ -47,7 +48,7 @@ const FormatoChecklist = () => {
     modelo: "",
     año: "",
     placas: "",
-    color: "",
+    kilometraje: "",
     observaciones: "",
     firmaResponsable: "",
     firmaCliente: "",
@@ -63,6 +64,8 @@ const FormatoChecklist = () => {
   const [loading, setLoading] = useState(true);
   const [showPdfDownload, setShowPdfDownload] = useState(false);
   const [showEvidenciasPdf, setShowEvidenciasPdf] = useState(false);
+
+  const { error } = UsoToast();
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 500);
@@ -100,10 +103,10 @@ const FormatoChecklist = () => {
             }
           }));
         } else {
-          alert("Error al subir la evidencia");
+          error("Error al subir la evidencia");
         }
       } catch (error) {
-        alert("Error al subir la evidencia");
+        error("Error al subir la evidencia");
       }
     } else {
       setChecklist(prev => ({
@@ -114,6 +117,18 @@ const FormatoChecklist = () => {
         }
       }));
     }
+  };
+
+  const validarDatosContacto = () => {
+    if (formData.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
+      error('El formato del correo electrónico no es válido');
+      return false;
+    }
+    if (formData.telefono && !/^\d{10}$/.test(formData.telefono)) {
+      error('El teléfono/celular debe tener exactamente 10 dígitos');
+      return false;
+    }
+    return true;
   };
 
   if (loading) {
@@ -155,10 +170,36 @@ const FormatoChecklist = () => {
             <User className="text-[#7152EC]" size={30}/>
             Información del Cliente
           </h2>
-          <div className="space-y-4">
-            <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Nombre completo" className="input" />
-            <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="Teléfono" className="input" />
-            <input type="email" name="correo" value={formData.correo} onChange={handleChange} placeholder="Correo electrónico" className="input" />
+          <div className="grid grid-cols-1 gap-4">
+            <div className=" text-gray-200">
+              <label htmlFor="nombre">Nombre completo</label>
+              <input type="text" 
+              name="nombre" 
+              value={formData.nombre} onChange={handleChange} 
+              placeholder="Nombre..." 
+              className="input"
+              required
+              />
+            </div>
+            <div className=" text-gray-200">
+              <label htmlFor="telefono">Teléfono</label>
+              <input 
+              type="tel" 
+              name="telefono" 
+              value={formData.telefono} onChange={handleChange} placeholder="Teléfono..." 
+              className="input" 
+              maxLength="10" 
+              required/>
+            </div>
+            <div className=" text-gray-200">
+              <label htmlFor="correo">Correo electrónico</label>
+              <input 
+              type="email" 
+              name="correo" 
+              value={formData.correo} onChange={handleChange} placeholder="Correo..." 
+              className="input" 
+              required/>
+            </div>
           </div>
         </div>
         {/* Vehículo */}
@@ -167,13 +208,74 @@ const FormatoChecklist = () => {
             <Car className="text-[#E60001]" size={30}/>
             Información del Vehículo
           </h2>
-          <div className="space-y-4">
-            <input type="text" name="noSerie" value={formData.noSerie} onChange={handleChange} placeholder="No. Serie (17 caracteres)" className="input" />
-            <input type="text" name="marca" value={formData.marca} onChange={handleChange} placeholder="Marca" className="input" />
-            <input type="text" name="modelo" value={formData.modelo} onChange={handleChange} placeholder="Modelo" className="input" />
-            <input type="text" name="año" value={formData.año} onChange={handleChange} placeholder="Año" className="input" />
-            <input type="text" name="placas" value={formData.placas} onChange={handleChange} placeholder="Placas (7 caracteres)" className="input" />
-            <input type="text" name="color" value={formData.color} onChange={handleChange} placeholder="Color" className="input" />
+          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">No. Serie (17 caracteres)</label>
+              <input
+                type="text"
+                name="noSerie"
+                value={formData.noSerie}
+                onChange={handleChange}
+                minLength={17}
+                maxLength={17}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Placa (7 caracteres)</label>
+              <input
+                type="text"
+                name="placas"
+                value={formData.placa}
+                onChange={handleChange}
+                minLength={7}
+                maxLength={7}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Marca</label>
+              <input
+                type="text"
+                name="marca"
+                value={formData.marca}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Modelo</label>
+              <input
+                type="text"
+                name="modelo"
+                value={formData.modelo}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Año</label>
+              <input
+                type="number"
+                name="año"
+                value={formData.año}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+                min={1900}
+                max={2100}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Kilometraje</label>
+              <input
+                type="number"
+                name="kilometraje"
+                value={formData.kilometraje}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+                min={0}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -283,7 +385,9 @@ const FormatoChecklist = () => {
         {!showPdfDownload ? (
           <button
             className="btn btn-secondary flex items-center gap-2"
-            onClick={() => setShowPdfDownload(true)}
+            onClick={() => {
+              if (validarDatosContacto()) setShowPdfDownload(true);
+            }}
           >
             <FileDown size={20} />
             <span>Preparar PDF</span>

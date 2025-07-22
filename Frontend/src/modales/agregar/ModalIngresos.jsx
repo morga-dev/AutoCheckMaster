@@ -139,51 +139,25 @@ const ModalIngresos = ({ isOpen, onClose, onSubmit }) => {
   };
 
   const validateIngreso = () => {
-    // Validar monto positivo
-    if (formData.monto <= 0) {
+    if (!formData.monto || Number(formData.monto) <= 0) {
       error('El monto debe ser mayor a 0');
       return false;
     }
-
-    // Validar fecha
-    if (!formData.fecha) {
-      error('La fecha es obligatoria');
-      return false;
-    }
-
-    // Validar concepto
-    if (formData.concepto.length < 5) {
-      error('El concepto debe tener al menos 5 caracteres');
-      return false;
-    }
-
-    // Validar categoría
-    if (!formData.categoria) {
-      error('Debe seleccionar una categoría');
-      return false;
-    }
-
     return true;
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateIngreso()) return;
     try {
-      if (!validateIngreso()) return;
       const ingresoData = {
         fecha: formData.fecha,
         concepto: formData.concepto,
         categoria: formData.categoria,
-        cliente: {
-          tipo: esClienteRegistrado ? 'registrado' : 'no_registrado',
-          ...(esClienteRegistrado
-            ? { id: formData.cliente.id }
-            : { nombre: formData.cliente.nombre }
-          )
-        },
         monto: Number(formData.monto),
         metodoPago: formData.metodoPago,
-        estado: formData.estado
+        estado: formData.estado,
+        cliente: formData.cliente
       };
 
       if (onSubmit) {

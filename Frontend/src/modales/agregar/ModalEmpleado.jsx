@@ -80,26 +80,22 @@ const ModalEmpleado = ({ isOpen, onClose, onSubmit }) => {
 
   const validateForm = () => {
     if (formData.curp.length !== 18) {
-      error('La CURP debe tener 18 caracteres');
+      error('La CURP debe tener exactamente 18 caracteres');
       return false;
     }
-    
     if (formData.rfc.length !== 13) {
-      error('El RFC debe tener 13 caracteres');
+      error('El RFC debe tener exactamente 13 caracteres');
       return false;
     }
-    
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.celular.replace(/\D/g, ''))) {
+      error('El número de celular debe tener exactamente 10 dígitos');
+      return false;
+    }
     if (formData.especialidades.length === 0) {
       error('Debe seleccionar al menos una especialidad');
       return false;
     }
-    
-    const phoneRegex = /^\d{10}$/;
-    if (!phoneRegex.test(formData.celular.replace(/\D/g, ''))) {
-      error('El número de celular debe tener 10 dígitos');
-      return false;
-    }
-    
     return true;
   };
 
@@ -213,6 +209,7 @@ const ModalEmpleado = ({ isOpen, onClose, onSubmit }) => {
                     className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 
                              focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                     required
+                    maxLength="18"
                   />
                 </div>
                 <div>
@@ -227,6 +224,7 @@ const ModalEmpleado = ({ isOpen, onClose, onSubmit }) => {
                     className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 
                              focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                     required
+                    maxLength="13"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -268,6 +266,7 @@ const ModalEmpleado = ({ isOpen, onClose, onSubmit }) => {
                     className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 
                              focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                     required
+                    maxLength="10"
                   />
                 </div>
                 <div>

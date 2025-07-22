@@ -2,20 +2,21 @@ import React, { useState, useEffect } from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { FileDown, User, Car, Clipboard, DollarSign, PenTool, Trash2, Wrench, Loader2 } from "lucide-react";
 import CotizacionPDF from "./PDFs/CotizacionPDF";
+import { UsoToast } from '../contexto/UsoToast';
 
 const FormatoCotizacion = () => {
   const [formData, setFormData] = useState({
     nombre: "",
-    direccion: "",
     correo: "",
     telefono: "",
-    noSerie: "",
     modelo: "",
     marca: "",
-    color: "",
     placas: "",
+    noSerie: "",
+    kilometraje: "",
+    año: "",
     observaciones: ""
-  }); // Removido el campo "año"
+  });
 
   const [refacciones, setRefacciones] = useState([
     { cantidad: "", descripcion: "", precio: "", subtotal: "" },
@@ -28,6 +29,8 @@ const FormatoCotizacion = () => {
   const [isPdfView, setIsPdfView] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showPdfDownload, setShowPdfDownload] = useState(false);
+
+  const { error } = UsoToast();
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 500);
@@ -115,6 +118,18 @@ const FormatoCotizacion = () => {
     );
   };
 
+  const validarDatosContacto = () => {
+    if (formData.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
+      error('El formato del correo electrónico no es válido');
+      return false;
+    }
+    if (formData.telefono && !/^\d{10}$/.test(formData.telefono)) {
+      error('El teléfono/celular debe tener exactamente 10 dígitos');
+      return false;
+    }
+    return true;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -155,12 +170,37 @@ const FormatoCotizacion = () => {
             Información del Cliente
           </h2>
           <div className="space-y-4">
-            {renderField("nombre", "Nombre completo")}
-            <div className="grid grid-cols-2 gap-4">
-              {renderField("telefono", "Teléfono")}
-              {renderField("correo", "Correo electrónico")}
+          <div className="grid grid-cols-1 gap-4">
+            <div className=" text-gray-200">
+              <label htmlFor="nombre">Nombre completo</label>
+              <input type="text" 
+              name="nombre" 
+              value={formData.nombre} onChange={handleChange} 
+              placeholder="Nombre..." 
+              className="input"
+              required
+              />
             </div>
-            {renderField("direccion", "Dirección")}
+            <div className=" text-gray-200">
+              <label htmlFor="telefono">Teléfono</label>
+              <input 
+              type="tel" 
+              name="telefono" 
+              value={formData.telefono} onChange={handleChange} placeholder="Teléfono..." 
+              className="input" 
+              maxLength="10" 
+              required/>
+            </div>
+            <div className=" text-gray-200">
+              <label htmlFor="correo">Correo electrónico</label>
+              <input 
+              type="email" 
+              name="correo" 
+              value={formData.correo} onChange={handleChange} placeholder="Correo..." 
+              className="input" 
+              required/>
+            </div>
+          </div>
           </div>
         </div>
 
@@ -171,11 +211,73 @@ const FormatoCotizacion = () => {
             Información del Vehículo
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            {renderField("noSerie", "No. Serie (17 caracteres)")}
-            {renderField("modelo", "Modelo")}
-            {renderField("marca", "Marca")}
-            {renderField("color", "Color")}
-            {renderField("placas", "Placas (7 caracteres)")}
+          <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">No. Serie (17 caracteres)</label>
+              <input
+                type="text"
+                name="noSerie"
+                value={formData.noSerie}
+                onChange={handleChange}
+                minLength={17}
+                maxLength={17}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Placa (7 caracteres)</label>
+              <input
+                type="text"
+                name="placas"
+                value={formData.placa}
+                onChange={handleChange}
+                minLength={7}
+                maxLength={7}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Marca</label>
+              <input
+                type="text"
+                name="marca"
+                value={formData.marca}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Modelo</label>
+              <input
+                type="text"
+                name="modelo"
+                value={formData.modelo}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Año</label>
+              <input
+                type="number"
+                name="año"
+                value={formData.año}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+                min={1900}
+                max={2100}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-200">Kilometraje</label>
+              <input
+                type="number"
+                name="kilometraje"
+                value={formData.kilometraje}
+                onChange={handleChange}
+                className="w-full p-2 bg-[#1E2837] border border-gray-700 rounded-md text-gray-200 focus:border-[#7152EC] focus:ring-1 focus:ring-[#7152EC]"
+                min={0}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -380,7 +482,9 @@ const FormatoCotizacion = () => {
         {!showPdfDownload ? (
           <button
             className="btn btn-secondary flex items-center gap-2"
-            onClick={() => setShowPdfDownload(true)}
+            onClick={() => {
+              if (validarDatosContacto()) setShowPdfDownload(true);
+            }}
           >
             <FileDown size={20} />
             <span>Preparar PDF</span>

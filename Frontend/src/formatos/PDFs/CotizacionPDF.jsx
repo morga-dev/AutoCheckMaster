@@ -173,49 +173,46 @@ const CotizacionPDF = ({ formData, refacciones, manosDeObra, calcularTotales }) 
         </View>
       </View>
 
-      {/* Sección Cliente */}
-      <View style={[styles.section, { borderLeftColor: '#7152EC' }]}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Información del Cliente</Text>
-        </View>
-        <View style={styles.grid}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Nombre:</Text>
-            <Text style={styles.value}>{formData.nombre || '_________________'}</Text>
+      {/* Cliente y Vehículo en Grid (igual que Checklist) */}
+      <View style={{ flexDirection: 'row', gap: 15, marginBottom: 5 }}>
+        {/* Cliente */}
+        <View style={[styles.section, { flex: 1, borderLeftColor: '#7152EC' }]}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Información del Cliente</Text>
           </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Teléfono:</Text>
-            <Text style={styles.value}>{formData.telefono || '_________________'}</Text>
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Correo:</Text>
-            <Text style={styles.value}>{formData.correo || '_________________'}</Text>
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Dirección:</Text>
-            <Text style={styles.value}>{formData.direccion || '_________________'}</Text>
+          <View style={styles.grid}>
+            {[
+              { label: 'Nombre:', value: formData.nombre },
+              { label: 'Teléfono:', value: formData.telefono },
+              { label: 'Correo:', value: formData.correo }
+            ].map((item, index) => (
+              <View key={index} style={styles.field}>
+                <Text style={styles.label}>{item.label}</Text>
+                <Text style={styles.value}>{item.value || '_________________'}</Text>
+              </View>
+            ))}
           </View>
         </View>
-      </View>
-
-      {/* Sección Vehículo */}
-      <View style={[styles.section, { borderLeftColor: '#1C64F1' }]}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Información del Vehículo</Text>
-        </View>
-        <View style={styles.grid}>
-          {[
-            { label: 'No. Serie:', value: formData.noSerie },
-            { label: 'Modelo:', value: formData.modelo },
-            { label: 'Marca:', value: formData.marca },
-            { label: 'Color:', value: formData.color },
-            { label: 'Placas:', value: formData.placas }
-          ].map((item, index) => (
-            <View key={index} style={styles.field}>
-              <Text style={styles.label}>{item.label}</Text>
-              <Text style={styles.value}>{item.value || '_________________'}</Text>
-            </View>
-          ))}
+        {/* Vehículo */}
+        <View style={[styles.section, { flex: 1, borderLeftColor: '#1C64F1' }]}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Información del Vehículo</Text>
+          </View>
+          <View style={styles.grid}>
+            {[
+              { label: 'No. Serie:', value: formData.noSerie },
+              { label: 'Marca:', value: formData.marca },
+              { label: 'Modelo:', value: formData.modelo },
+              { label: 'Año:', value: formData.año },
+              { label: 'Placas:', value: formData.placas },
+              { label: 'Kilometraje:', value: formData.kilometraje },
+            ].map((item, index) => (
+              <View key={index} style={styles.field}>
+                <Text style={styles.label}>{item.label}</Text>
+                <Text style={styles.value}>{item.value || '_________________'}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
 

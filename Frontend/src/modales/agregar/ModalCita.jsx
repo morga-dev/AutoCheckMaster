@@ -176,46 +176,65 @@ const ModalCita = ({ isOpen, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'placa' || name === 'numero_serie') {
+      newValue = value.toUpperCase();
+    }
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
   const validateCita = () => {
-    // Obtener fecha y hora actual
+    // Obtener fecha y hora actual local
     const now = new Date();
-    
+    // Validar número de serie (17 caracteres exactos)
+    if (!formData.numero_serie || formData.numero_serie.length !== 17) {
+      error('El número de serie debe tener exactamente 17 caracteres');
+      return false;
+    }
+    // Validar placa (7 caracteres exactos)
+    if (!formData.placa || formData.placa.length !== 7) {
+      error('La placa debe tener exactamente 7 caracteres');
+      return false;
+    }
     // Crear fecha de la cita combinando fecha y hora del formulario
+    if (!formData.fecha || !formData.hora) {
+      error('Debe seleccionar fecha y hora para la cita');
+      return false;
+    }
     const [year, month, day] = formData.fecha.split('-');
-    const [hour] = formData.hora.split(':');
-    const citaDateTime = new Date(year, month - 1, day, hour);
-    
+    const [hour, minute] = formData.hora.split(':');
+    const citaDateTime = new Date(year, month - 1, day, hour, minute);
+
     // Validar que la fecha/hora no sea anterior a ahora
     if (citaDateTime < now) {
       error('La fecha y hora de la cita no puede ser anterior a la actual');
       return false;
     }
 
-    // Validar horario laboral (8am a 6pm)
-    const citaHour = parseInt(formData.hora.split(':')[0]);
-    if (citaHour < 8 || citaHour >= 18) {
-      error('El horario de citas es de 8:00 am a 7:00 pm');
+    // Validar horario laboral (8am a 18:59)
+    const citaHour = parseInt(hour);
+    if (citaHour < 8 || citaHour > 18 || (citaHour === 18 && parseInt(minute) > 59)) {
+      error('El horario de citas es de 8:00 am a 6:59 pm');
       return false;
     }
 
     // Solo validar hora si es el mismo día
     const isToday = 
-      now.getDate() === citaDateTime.getDate() &&
-      now.getMonth() === citaDateTime.getMonth() &&
-      now.getFullYear() === citaDateTime.getFullYear();
+      now.getDate() === parseInt(day) &&
+      now.getMonth() === (parseInt(month) - 1) &&
+      now.getFullYear() === parseInt(year);
 
-    if (isToday && citaHour <= now.getHours()) {
-      error('Para citas del mismo día, la hora debe ser posterior a la actual');
-      return false;
+    if (isToday) {
+      if (citaDateTime <= now) {
+        error('Para citas del mismo día, la hora debe ser posterior a la actual');
+        return false;
+      }
     }
 
-    // Validar datos del vehículo
+    // Validar datos del vehículo para clientes no registrados
     if (!esClienteRegistrado && (!formData.marca || !formData.modelo || !formData.placa)) {
       error('Los datos del vehículo son obligatorios');
       return false;
@@ -611,7 +630,7 @@ const ModalCita = ({ isOpen, onClose, onSubmit }) => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Placa *
+                        Placa (7 caracteres)*
                       </label>
                       <input
                         type="text"
@@ -620,11 +639,13 @@ const ModalCita = ({ isOpen, onClose, onSubmit }) => {
                         onChange={handleChange}
                         className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                         required
+                        minLength={7}
+                        maxLength={7}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Número de Serie *
+                        Número de Serie (17 caracteres)*
                       </label>
                       <input
                         type="text"
@@ -633,6 +654,8 @@ const ModalCita = ({ isOpen, onClose, onSubmit }) => {
                         onChange={handleChange}
                         className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200 focus:ring-2 focus:ring-[#7152EC] focus:border-transparent"
                         required
+                        minLength={17}
+                        maxLength={17}
                       />
                     </div>
                     <div>

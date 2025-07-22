@@ -47,13 +47,15 @@ const ModalAgregarServicioHistorial = ({
             return;
         }
 
-        // Validar fecha
+        // Validar fecha: solo se permite la fecha local actual
         const fechaServicio = new Date(form.fecha);
         const hoy = new Date();
-        if (fechaServicio > hoy) {
-            error('La fecha no puede ser futura');
-            return;
-        }
+        hoy.setHours(0,0,0,0);
+        fechaServicio.setHours(0,0,0,0);
+        if (fechaServicio.getTime() !== hoy.getTime()) {
+          error('Solo se permite la fecha actual local para el servicio');
+          return;
+      }
 
         // Validar PDF
         if (!form.pdf_orden) {

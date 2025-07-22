@@ -207,7 +207,7 @@ const ChecklistPDF = ({ formData, checklistItems }) => (
               { label: 'Modelo:', value: formData.modelo },
               { label: 'Año:', value: formData.año },
               { label: 'Placas:', value: formData.placas },
-              { label: 'Color:', value: formData.color }
+              { label: 'Kilometraje', value: formData.kilometraje },
             ].map((item, index) => (
               <View key={index} style={styles.field}>
                 <Text style={styles.label}>{item.label}</Text>
