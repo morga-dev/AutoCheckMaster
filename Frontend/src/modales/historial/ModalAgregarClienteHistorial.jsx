@@ -167,6 +167,7 @@ const ModalAgregarClienteHistorial = ({
                 onChange={e => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
                 className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200"
                 required
+                maxLength={10}
               />
               <label className="block text-sm font-medium text-gray-300 mb-1">Correo</label>
               <input
