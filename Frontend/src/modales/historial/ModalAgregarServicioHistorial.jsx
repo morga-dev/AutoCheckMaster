@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Wrench, FileText } from "lucide-react";
 import PropTypes from 'prop-types';
+import { UsoToast } from '../../contexto/UsoToast';
 
 const ModalAgregarServicioHistorial = ({
   isOpen,
@@ -21,7 +22,7 @@ const ModalAgregarServicioHistorial = ({
     pdf_orden: null
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { error } = UsoToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,36 +31,39 @@ const ModalAgregarServicioHistorial = ({
         // Validar nombre del servicio
         if (!form.nombre_servicio.trim()) {
             error('El nombre del servicio es obligatorio');
+            setLoading(false);
             return;
         }
         if (form.nombre_servicio.length > 100) {
             error('El nombre del servicio no puede exceder los 100 caracteres');
+            setLoading(false);
             return;
         }
 
         // Validar descripción
         if (!form.descripcion.trim()) {
             error('La descripción es obligatoria');
+            setLoading(false);
             return;
         }
         if (form.descripcion.length > 500) {
             error('La descripción no puede exceder los 500 caracteres');
+            setLoading(false);
             return;
         }
 
         // Validar fecha: solo se permite la fecha local actual
-        const fechaServicio = new Date(form.fecha);
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-        fechaServicio.setHours(0,0,0,0);
-        if (fechaServicio.getTime() !== hoy.getTime()) {
+        const hoyStr = new Date().toISOString().split('T')[0];
+        if (form.fecha !== hoyStr) {
           error('Solo se permite la fecha actual local para el servicio');
+          setLoading(false);
           return;
-      }
+        }
 
         // Validar PDF
         if (!form.pdf_orden) {
             error('Debe adjuntar el PDF de la orden');
+            setLoading(false);
             return;
         }
         
@@ -67,10 +71,12 @@ const ModalAgregarServicioHistorial = ({
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (form.pdf_orden.size > maxSize) {
             error('El archivo PDF no debe superar los 5MB');
+            setLoading(false);
             return;
         }
         if (form.pdf_orden.type !== 'application/pdf') {
             error('El archivo debe ser un PDF');
+            setLoading(false);
             return;
         }
 
@@ -83,8 +89,8 @@ const ModalAgregarServicioHistorial = ({
 
         await onServicioAgregado(formData);
         onClose();
-    } catch (error) {
-        error(error.message || 'Error al agregar el servicio');
+    } catch (err) {
+        error(err.message || 'Error al agregar el servicio');
     } finally {
         setLoading(false);
     }
@@ -121,7 +127,6 @@ const ModalAgregarServicioHistorial = ({
         <h2 className="text-2xl font-bold mb-4 text-center text-gray-100 flex items-center gap-2">
           <Wrench size={24} /> Nuevo Servicio para {vehiculo.marca} {vehiculo.modelo}
         </h2>
-        {error && <div className="mb-4 text-red-500 text-sm text-center">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -156,6 +161,7 @@ const ModalAgregarServicioHistorial = ({
               onChange={handleChange}
               className="w-full p-2 bg-[#00132e] border border-gray-700 rounded-md text-gray-200"
               required
+              disabled
             />
           </div>
           <div>

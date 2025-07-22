@@ -30,7 +30,12 @@ const ModalAgregarVehiculoHistorial = ({
 		if (isOpen && cliente?.tipo === "registrado") {
 			const fetchVehiculos = async () => {
 				try {
-					const response = await axios.get(`http://localhost:5000/api/clientes/${cliente.id}/vehiculos`);
+					// Quitar el prefijo "r_" si existe
+					let clienteId = cliente.id;
+					if (typeof clienteId === "string" && clienteId.startsWith("r_")) {
+						clienteId = clienteId.replace("r_", "");
+					}
+					const response = await axios.get(`http://localhost:5000/api/clientes/${clienteId}/vehiculos`);
 					setVehiculos(response.data);
 				} catch (err) {
 					console.error('Error al cargar vehículos:', err);
@@ -53,8 +58,20 @@ const ModalAgregarVehiculoHistorial = ({
 			if (modo === "registrado") {
 				if (!selectedVehiculoId) {
 					error('Debe seleccionar un vehículo');
+					setLoading(false);
 					return;
 				}
+				// Buscar el objeto completo del vehículo seleccionado
+				const vehiculoSeleccionado = vehiculos.find(v => String(v.id) === String(selectedVehiculoId));
+				if (!vehiculoSeleccionado) {
+					error('Vehículo no encontrado');
+					setLoading(false);
+					return;
+				}
+				onVehiculoAgregado(vehiculoSeleccionado);
+				onClose();
+				setLoading(false);
+				return;
 			} else {
 				// Validaciones para nuevo vehículo
 				if (!nuevoVehiculo.marca.trim()) {
@@ -108,7 +125,8 @@ const ModalAgregarVehiculoHistorial = ({
 			// Crear vehículo nuevo (para clientes registrados y no registrados)
 			const vehiculoData = {
 				...nuevoVehiculo,
-				id: `temp-${Date.now()}`, // ID temporal para el frontend
+				anio: nuevoVehiculo.anio ? Number(nuevoVehiculo.anio) : undefined,
+				id: `temp-${Date.now()}`,
 				cliente_id: cliente.tipo === 'registrado' ? cliente.id : null
 			};
 			

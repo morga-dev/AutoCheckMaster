@@ -44,43 +44,58 @@ const ModalAgregarClienteHistorial = ({
         if (esClienteRegistrado) {
             if (!selectedClienteId) {
                 error('Debe seleccionar un cliente');
+                setLoading(false);
                 return;
             }
+            // Buscar el cliente seleccionado para obtener sus datos completos
+            const clienteSeleccionado = clientes.find(c => String(c.id) === String(selectedClienteId));
+            if (!clienteSeleccionado) {
+                error('Cliente no encontrado');
+                setLoading(false);
+                return;
+            }
+            await onClienteAgregado({
+                ...clienteSeleccionado,
+                tipo: 'registrado'
+            });
+            onClose();
+            setLoading(false);
+            return;
         } else {
             // Validaciones cliente nuevo
             if (!nuevoCliente.nombre.trim()) {
                 error('El nombre es obligatorio');
-                return;
-            }
-            if (nuevoCliente.nombre.length > 50) {
-                error('El nombre no puede exceder los 50 caracteres');
+                setLoading(false);
                 return;
             }
             if (!nuevoCliente.telefono.trim()) {
                 error('El teléfono es obligatorio');
+                setLoading(false);
                 return;
             }
             const phoneRegex = /^\d{10}$/;
             if (!phoneRegex.test(nuevoCliente.telefono.replace(/[-\s]/g, ''))) {
                 error('El teléfono debe tener 10 dígitos');
+                setLoading(false);
                 return;
             }
             if (nuevoCliente.correo) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(nuevoCliente.correo)) {
                     error('El formato del correo no es válido');
+                    setLoading(false);
                     return;
                 }
             }
+            await onClienteAgregado({
+                ...nuevoCliente,
+                tipo: 'no_registrado',
+                nombre_completo: nuevoCliente.nombre, // Asegurar que tenga nombre_completo
+                telefono: nuevoCliente.telefono,
+                correo: nuevoCliente.correo || ''
+            });
+            onClose();
         }
-        await onClienteAgregado({
-            ...nuevoCliente,
-            tipo: esClienteRegistrado ? 'registrado' : 'no_registrado',
-            nombre_completo: nuevoCliente.nombre, // Asegurar que tenga nombre_completo
-            telefono: nuevoCliente.telefono,
-            correo: nuevoCliente.correo || ''
-        });
-        onClose();
     } catch (error) {
         setErrorMsg(error.message);
         error(error.message);

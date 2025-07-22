@@ -3,7 +3,7 @@ import axios from 'axios';
 import { UsoToast } from '../contexto/UsoToast';
 import { 
     Search, UserPlus, Car, FileText, Calendar, 
-    X, ChevronDown, ChevronUp, PlusCircle 
+    X, ChevronDown, ChevronUp, PlusCircle, Eye 
 } from 'lucide-react';
 
 import ModalAgregarClienteHistorial from '../modales/historial/ModalAgregarClienteHistorial';
@@ -29,7 +29,10 @@ function Historial() {
         vehiculo: null,
         mostrarEnLista: false
     });
-
+    // Estados para el modal de detalles de vehículo
+    const [showVehiculoModal, setShowVehiculoModal] = useState(false);
+    const [vehiculoDetalle, setVehiculoDetalle] = useState(null);
+    
     // Estados para confirmaciones
     const [confirmacionEliminar, setConfirmacionEliminar] = useState({
         isOpen: false,
@@ -63,7 +66,7 @@ function Historial() {
         // Asegurar que el cliente tenga todos los campos necesarios
         const clienteCompleto = {
             ...cliente,
-            id: cliente.id || `temp-${Date.now()}`, // ID temporal para clientes no registrados
+            id: cliente.id || (cliente.tipo === 'no_registrado' ? `temp-${Date.now()}` : undefined), // Solo id temporal para no registrados
             tipo: cliente.tipo || 'no_registrado', // Asegurar que siempre tenga tipo
             nombre: cliente.nombre || cliente.nombre_completo,
             apellido: cliente.apellido || '',
@@ -101,14 +104,18 @@ function Historial() {
                 // Para clientes registrados, verificar si es un vehículo nuevo o existente
                 if (vehiculo.id && vehiculo.id.toString().startsWith('temp-')) {
                     // Es un vehículo nuevo, guardarlo en la base de datos
+                    let clienteId = pendingHistorial.cliente.id;
+                    if (typeof clienteId === "string" && clienteId.startsWith("r_")) {
+                        clienteId = clienteId.replace("r_", "");
+                    }
                     const response = await axios.post(
-                        `http://localhost:5000/api/clientes/${pendingHistorial.cliente.id}/vehiculos`,
+                        `http://localhost:5000/api/clientes/${clienteId}/vehiculos`,
                         {
                             marca: vehiculo.marca,
                             modelo: vehiculo.modelo,
                             placa: vehiculo.placa || '',
                             numero_serie: vehiculo.numero_serie || '',
-                            anio: vehiculo.anio || '',
+                            anio: vehiculo.anio ? Number(vehiculo.anio) : (vehiculo.año ? Number(vehiculo.año) : undefined),
                             kilometraje: vehiculo.kilometraje || ''
                         }
                     );
@@ -123,17 +130,19 @@ function Historial() {
                         setIsServicioModalOpen(true);
                     }
                 } else {
-                    // Es un vehículo existente
+                    // Es un vehículo existente, solo seleccionarlo
                     setPendingHistorial(prev => ({
                         ...prev,
                         vehiculo
                     }));
+                    setSelectedVehicle(vehiculo);
+                    setSelectedClient(pendingHistorial.cliente);
                     success('Vehículo seleccionado correctamente');
-                    setIsServicioModalOpen(true);
+                    setTimeout(() => setIsServicioModalOpen(true), 0);
                 }
             }
-        } catch (error) {
-            console.error('Error al agregar vehículo:', error);
+        } catch (err) {
+            console.error('Error al agregar vehículo:', err);
             error('Error al agregar vehículo');
         }
     };
@@ -152,8 +161,15 @@ function Historial() {
             if (cliente.tipo === 'registrado' || cliente.tipo_cliente === 'registrado') {
                 // Para clientes registrados
                 servicioFormData.append('tipo_cliente', 'registrado');
-                servicioFormData.append('cliente_id', cliente.id);
-                servicioFormData.append('vehiculo_id', vehiculo.id);
+                // Extraer solo el número si el id es tipo 'r_4'
+                const clienteId = typeof cliente.id === 'string' && cliente.id.startsWith('r_')
+                  ? cliente.id.replace('r_', '')
+                  : cliente.id;
+                const vehiculoId = typeof vehiculo.id === 'string' && vehiculo.id.startsWith('r_')
+                  ? vehiculo.id.replace('r_', '')
+                  : vehiculo.id;
+                servicioFormData.append('cliente_id', clienteId);
+                servicioFormData.append('vehiculo_id', vehiculoId);
             } else {
                 // Para clientes no registrados
                 servicioFormData.append('tipo_cliente', 'no_registrado');
@@ -228,8 +244,8 @@ function Historial() {
             });
             success('Cliente eliminado correctamente');
             await fetchHistorialData();
-        } catch (error) {
-            console.error('Error al eliminar cliente:', error);
+        } catch (err) {
+            console.error('Error al eliminar cliente:', err);
             error('Error al eliminar cliente');
         }
     };
@@ -240,8 +256,8 @@ function Historial() {
             await axios.delete(`http://localhost:5000/api/historial/vehiculo/${vehicleId}`);
             success('Vehículo eliminado correctamente');
             await fetchHistorialData();
-        } catch (error) {
-            console.error('Error al eliminar vehículo:', error);
+        } catch (err) {
+            console.error('Error al eliminar vehículo:', err);
             error('Error al eliminar vehículo');
         }
     };
@@ -252,8 +268,8 @@ function Historial() {
             await axios.delete(`http://localhost:5000/api/historial/servicio/${serviceId}`);
             success('Servicio eliminado correctamente');
             await fetchHistorialData();
-        } catch (error) {
-            console.error('Error al eliminar servicio:', error);
+        } catch (err) {
+            console.error('Error al eliminar servicio:', err);
             error('Error al eliminar servicio');
         }
     };
@@ -499,15 +515,10 @@ function Historial() {
                           celular: cliente.telefono
                       };
                       setSelectedClient(clienteSeleccionado);
-                      // Si es un cliente no registrado, no necesitamos pendingHistorial
-                      if (cliente.tipo_cliente === 'no_registrado') {
-                          setSelectedClient(clienteSeleccionado);
-                      } else {
-                          setPendingHistorial(prev => ({
-                              ...prev,
-                              cliente: clienteSeleccionado
-                          }));
-                      }
+                      setPendingHistorial(prev => ({
+                          ...prev,
+                          cliente: clienteSeleccionado
+                      }));
                       setIsVehiculoModalOpen(true);
                     }}
                     className="btn btn-secondary flex items-center gap-2 text-sm"
@@ -542,8 +553,19 @@ function Historial() {
                           <div className="flex items-center text-gray-200">
                             <Car className="text-gray-400 mr-2" size={20} />
                             <span>
-                              {vehiculo.marca} {vehiculo.modelo} ({vehiculo.año})
+                              {vehiculo.marca} {vehiculo.modelo} (Placa: {vehiculo.placa})
                             </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setVehiculoDetalle(vehiculo);
+                                setShowVehiculoModal(true);
+                              }}
+                              className="p-1 text-[#0E9E6E] hover:text-[#FE6F00]"
+                              title="Ver detalles del vehículo"
+                            >
+                              <Eye size={18} />
+                            </button>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
@@ -654,7 +676,7 @@ function Historial() {
                 isOpen={isVehiculoModalOpen}
                 onClose={() => {
                     setIsVehiculoModalOpen(false);
-                    setSelectedClient(null);
+                    // NO limpiar selectedClient aquí
                 }}
                 cliente={selectedClient || pendingHistorial.cliente}
                 onVehiculoAgregado={handleVehiculoAgregado}
@@ -675,7 +697,7 @@ function Historial() {
         {/* Modal de Confirmación */}
         <ModalConfirmacion
             isOpen={confirmacionEliminar.isOpen}
-            onClose={cancelarConfirmacion}
+            onCancel={cancelarConfirmacion}
             onConfirm={confirmarEliminacion}
             loading={confirmacionEliminar.loading}
             message={getMensajeConfirmacion()}
@@ -683,6 +705,69 @@ function Historial() {
             confirmText="Sí, eliminar"
             cancelText="Cancelar"
         />
+
+        {/* Modal de Detalles del Vehículo */}
+        {showVehiculoModal && vehiculoDetalle && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all">
+            <div className="bg-[#1E2837] rounded-2xl shadow-2xl max-w-lg w-full mx-4 animate-fadeIn scale-100 border border-gray-700 relative">
+              <button onClick={() => setShowVehiculoModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl">×</button>
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-100 flex items-center gap-2">
+                  <Car size={24} /> Detalles del Vehículo
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="col-span-2">
+                    <h4 className="font-semibold text-[#7152EC] mb-2 flex items-center">
+                      <Car className="mr-2" size={18} /> Información General
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Marca</p>
+                        <p className="font-medium">{vehiculoDetalle.marca}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Modelo</p>
+                        <p className="font-medium">{vehiculoDetalle.modelo}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Año</p>
+                        <p className="font-medium">{vehiculoDetalle.año || vehiculoDetalle.anio || 'No especificado'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Kilometraje</p>
+                        <p className="font-medium">{vehiculoDetalle.kilometraje ? `${vehiculoDetalle.kilometraje.toLocaleString()} km` : 'No especificado'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <h4 className="font-semibold text-[#FE6F00] mb-2 flex items-center">
+                      <FileText className="mr-2" size={18} /> Identificación
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Placa</p>
+                        <p className="font-medium">{vehiculoDetalle.placa || 'No especificada'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">N° de Serie</p>
+                        <p className="font-medium">{vehiculoDetalle.numero_serie || 'No especificado'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.95);}
+                to { opacity: 1; transform: scale(1);}
+              }
+              .animate-fadeIn {
+                animation: fadeIn 0.2s ease;
+              }
+            `}</style>
+          </div>
+        )}
       </div>
     );
 }

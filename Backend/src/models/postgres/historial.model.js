@@ -277,7 +277,17 @@ class Historial {
             const clientesMap = new Map();
             
             result.rows.forEach(row => {
-                const clienteKey = row.tipo_cliente === 'registrado' ? row.cliente_id : row.id;
+                const clienteKey = row.tipo_cliente === 'registrado'
+                    ? `r_${row.cliente_id}`
+                    : `n_${(row.nombre_cliente || '').trim().toLowerCase()}_${(row.telefono_cliente || '').trim()}`;
+
+                // Si el clienteKey es 'n_', asegurar que los datos estén completos
+                if (clienteKey.startsWith('n_')) {
+                    if (!row.nombre_cliente || !row.telefono_cliente) {
+                        console.warn('Cliente no registrado incompleto:', row);
+                        return; // Opcional: lanzar un error o manejarlo de otra manera
+                    }
+                }
                 
                 if (!clientesMap.has(clienteKey)) {
                     clientesMap.set(clienteKey, {
@@ -371,19 +381,47 @@ class Historial {
     }
 
     // Método para eliminar un cliente del historial (todos sus servicios)
-    static async deleteCliente(clienteId, tipoCliente) {
+    static async deleteCliente(clienteKey, tipoCliente) {
         try {
             let result;
-            if (tipoCliente === 'registrado') {
+            // Soportar claves tipo 'r_3', 'n_17' y 'n_nombre_telefono'
+            if (typeof clienteKey === 'string' && clienteKey.startsWith('r_')) {
+                const clienteId = parseInt(clienteKey.replace('r_', ''), 10);
                 result = await pool.query(
                     'DELETE FROM historial_servicios WHERE cliente_id = $1 AND tipo_cliente = $2 RETURNING *',
                     [clienteId, tipoCliente]
                 );
+            } else if (typeof clienteKey === 'string' && clienteKey.startsWith('n_')) {
+                const resto = clienteKey.replace('n_', '');
+                if (/^\d+$/.test(resto)) {
+                    // Si es un número, eliminar por id
+                    const id = parseInt(resto, 10);
+                    result = await pool.query(
+                        'DELETE FROM historial_servicios WHERE id = $1 AND tipo_cliente = $2 RETURNING *',
+                        [id, tipoCliente]
+                    );
+                } else {
+                    // Si es nombre_telefono, eliminar todos los servicios de ese cliente no registrado
+                    const sepIndex = resto.lastIndexOf('_');
+                    const nombre = resto.substring(0, sepIndex);
+                    const telefono = resto.substring(sepIndex + 1);
+                    result = await pool.query(
+                        'DELETE FROM historial_servicios WHERE LOWER(nombre_cliente) = $1 AND telefono_cliente = $2 AND tipo_cliente = $3 RETURNING *',
+                        [nombre.toLowerCase(), telefono, tipoCliente]
+                    );
+                }
             } else {
-                result = await pool.query(
-                    'DELETE FROM historial_servicios WHERE id = $1 AND tipo_cliente = $2 RETURNING *',
-                    [clienteId, tipoCliente]
-                );
+                if (tipoCliente === 'registrado') {
+                    result = await pool.query(
+                        'DELETE FROM historial_servicios WHERE cliente_id = $1 AND tipo_cliente = $2 RETURNING *',
+                        [clienteKey, tipoCliente]
+                    );
+                } else {
+                    result = await pool.query(
+                        'DELETE FROM historial_servicios WHERE id = $1 AND tipo_cliente = $2 RETURNING *',
+                        [clienteKey, tipoCliente]
+                    );
+                }
             }
             return result.rows;
         } catch (error) {
