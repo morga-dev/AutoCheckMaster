@@ -30,6 +30,7 @@ import empresaRoutes from './routes/mongodb/empresa.routes.js';
 // Ruta de evidencias
 import evidenciaRoutes from './routes/evidencias/evidencia.routes.js';
 
+console.log("Cargando variables de entorno...");
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -99,21 +100,11 @@ app.use('/api', perfilRoutes);
 app.use('/api', empresaRoutes);
 app.use('/api/evidencias', evidenciaRoutes);
 
-const startServer = async () => {
-    try {
-        await setupDirectories();
-        await connectDB();
-        app.listen(PORT, () => {
-            console.log(`Servidor iniciado en puerto ${PORT}`);
-            console.log(`Bases de datos conectadas`);
-        });
-    } catch (error) {
-        console.error('❌ Error iniciando servidor:', error);
-        process.exit(1);
-    }
-};
+console.log("Conectando a MongoDB...");
+await connectDB();
 
+console.log("Iniciando servidor...");
 const PORT = process.env.PORT || 5000;
-
-
-startServer();
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado en puerto ${PORT}`);
+});
